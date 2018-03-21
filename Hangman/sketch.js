@@ -40,7 +40,7 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(2400, 1217);
 }
 // Functions //
 function startScreen() {
