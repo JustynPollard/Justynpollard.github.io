@@ -40,7 +40,7 @@ let grid = [
 
 let winWidth = 1200;
 let winHeight = 1200;
-let froggerTitle, playButton, playButtonHighlighted;
+let froggerTitle, playButton, playbuttonHighlighted;
 let carIcon1, carIcon2, carIcon3, trainIcon;
 let frogChar;
 let turtleChar;
@@ -62,7 +62,7 @@ function preload() {
   froggerTitle = loadImage("images/froggerTitle.png");
   frogChar = loadImage("images/frogChar.png");
   playButton = loadImage("images/playButton.png");
-  playButtonHighlighted = loadImage("images/playButtonHighlighted.png");
+  playbuttonHighlighted = loadImage("images/playbuttonHighlighted.png");
   trainIcon = loadImage("images/trainIcon.png");
   carIcon1 = loadImage("images/carIcon1.png");
   carIcon2 = loadImage("images/carIcon2.png");
@@ -97,7 +97,7 @@ function displayStartScreen() { // Displays start screen //
 
 function playButtonFun() {
   if (mouseX >= 1500 / 2 - 115 && mouseX <= 1500 / 2 + 115 && mouseY >= 500 && mouseY <= 600) { // Button Function
-    image(playButtonHighlighted, 1500 / 2 - 115, 500);
+    image(playbuttonHighlighted, 1500 / 2 - 115, 500);
     if (mouseIsPressed) {
       startScreenOn = false;
       gameScreenOn = true;
