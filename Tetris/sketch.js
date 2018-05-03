@@ -23,7 +23,7 @@ let grid = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 ];
 
 let shapeGrid;
@@ -64,15 +64,19 @@ function preload() {
   tetrisFont = loadFont("assets/ModernTetris.ttf");
 }
 
+//random selection function for arrays
 Array.prototype.sample = function() {
   return this[Math.floor(Math.random() * this.length)];
 }
 
 function setup() {
   createCanvas(1600, 1200);
+
+  //picks upcoming shape and color to start//
   secondShape = shapes.sample();
   thirdShape = shapes.sample();
-  randomColor = colors.sample();
+  secondRandomColor = colors.sample();
+  thirdRandomColor = colors.sample();
 }
 
 // Functions //
@@ -80,8 +84,8 @@ function setup() {
 // Display Screen Functions //
 ////////////////////////////////////////////////////////////////////////////////
 
-function displayStartScreen() {
-  for (let i = 0; i < winHeight; i++) { //Displays gradient background
+function displayStartScreen() { // Bill //
+  for (let i = 0; i < winHeight; i++) { // Displays gradient background
     stroke(i / winHeight * 255, 71, 190);
     line(0, i, 1600, i);
   }
@@ -89,7 +93,7 @@ function displayStartScreen() {
 }
 
 function playButtonFun() {
-  if (mouseX >= 1600 / 2 - 130 && mouseX <= 1600 / 2 + 130 && mouseY >= 500 && mouseY <= 600) { // Button Function
+  if (mouseX >= 1600 / 2 - 130 && mouseX <= 1600 / 2 + 130 && mouseY >= 500 && mouseY <= 600) { // Button Function for starting game
     image(playButtonHighlighted, 1600 / 2 - 130, 500);
     if (mouseIsPressed) {
       startScreenOn = false;
@@ -109,10 +113,14 @@ function displayGameScreen() {
   stroke(255, 255, 255, 50);
   for (let x = 0; x < 10; x++) {
     for (let y = 0; y < 18; y++) {
+
+
       if (grid[y][x] === 0) {
         fill(100, 100, 255, 100);
         stroke(255, 255, 255, 50);
       }
+
+      //selects what cube color/image to draw for moving blocks//
       if (grid[y][x] === 1) {
         fill(255, 255, 255, 0)
         noStroke()
@@ -128,11 +136,15 @@ function displayGameScreen() {
           image(orangeCube, 550 + x * cellSize, 200 + y * cellSize)
         }
       }
+
+      //displays yellow cubes for blocks not moving//
       if (grid[y][x] === 2) {
         fill(255, 255, 255, 0)
         noStroke()
         image(yellowCube, 550 + x * cellSize, 200 + y * cellSize)
       }
+
+      //draws background grid//
       rect(550 + x * cellSize, 200 + y * cellSize, cellSize, cellSize);
     }
   }
@@ -143,14 +155,21 @@ function displayGameScreen() {
 }
 
 
-function pickShape() {
-  if (spaceFree === true) {
+function pickShape() { // Justyn //
+  if (spaceFree === true) { // asks if there is allready an moving shape in the grid //
     spaceFree = false;
-    randomColor = colors.sample();
+
+    // shuffles color and shape to the next one //
+    randomColor = secondRandomColor;
+    secondRandomColor = thirdRandomColor;
+    thirdRandomColor = colors.sample();
     currentShape = secondShape;
     secondShape = thirdShape;
     thirdShape = shapes.sample();
-    spawnShape(currentShape)
+
+    spawnShape(currentShape) // picks what shape grid to spawn accorindg to selected shape//
+
+    // spawns in shape at top of grid and checks to see if the space is clear of non moving blocks//
     for (let x = 0; x < shapeGrid.length; x++) {
       for (let y = 0; y < shapeGrid.length; y++) {
         if (grid[x][y + 5] === 2) {
@@ -163,7 +182,7 @@ function pickShape() {
   }
 }
 
-function spawnShape(shape) {
+function spawnShape(shape) { // Bill //
   if (shape === 'I') {
     shapeGrid = [
       [0, 1, 0],
@@ -208,7 +227,9 @@ function spawnShape(shape) {
   }
 }
 
-function moveBlocks() {
+function moveBlocks() { // Justyn & Bill  //
+
+  //moves blocks down every 30 frames(0.5s) and askes if there is any blocks in the way//
   if (frameCount % 30 === 0) {
     downFree = true;
     for (let y = 17; y >= 0; y--) {
@@ -237,7 +258,8 @@ function moveBlocks() {
   checkSpace()
 }
 
-function checkSpace() {
+function checkSpace() { // Bill //
+  // asks if any blocks have currently stopped moving and if so turns all 3s and 1s into 2s //
   threePresent = false;
   for (let x = 9; x >= 0; x--) {
     for (let y = 17; y >= 0; y--) {
@@ -258,8 +280,9 @@ function checkSpace() {
   }
 }
 
-function keyPressed() {
-  if (keyCode === RIGHT_ARROW) {
+function keyPressed() { // Justyn //
+
+  if (keyCode === RIGHT_ARROW) { // moves to right and asks if area is clear to right //
     let rightFree = true;
     for (let x = 9; x >= 0; x--) {
       for (let y = 17; y >= 0; y--) {
@@ -280,8 +303,7 @@ function keyPressed() {
     }
   }
 
-
-  if (keyCode === LEFT_ARROW) {
+  if (keyCode === LEFT_ARROW) { // moves to left and asks if area is clear down //
     let leftFree = true;
     for (let x = 0; x < 10; x++) {
       for (let y = 0; y < 18; y++) {
@@ -302,8 +324,7 @@ function keyPressed() {
     }
   }
 
-
-  if (keyCode === DOWN_ARROW) {
+  if (keyCode === DOWN_ARROW) { // moves down and asks if area is clear down //
     let downFree = true;
     for (let x = 0; x < 10; x++) {
       for (let y = 0; y < 18; y++) {
@@ -324,9 +345,8 @@ function keyPressed() {
     }
   }
 
-  if (keyCode === UP_ARROW) {
+  if (keyCode === UP_ARROW) { // rotates blocks(work in progress) //
     let rotateFree = true;
-
     rotate:
       for (let x = 0; x < 10; x++) {
         for (let y = 0; y < 18; y++) {
@@ -427,13 +447,46 @@ function keyPressed() {
               grid[y - 1][x + 1] = 1;
               break rotate;
             }
+            if (currentShape === "Z") {
+              currentShape = "Z90"
+              grid[y][x] = 0;
+              grid[y + 1][x + 2] = 0;
+              grid[y + 1][x] = 1;
+              grid[y + 2][x] = 1;
+              break rotate;
+            }
+            if (currentShape === "Z90") {
+              currentShape = "Z180"
+              grid[y + 1][x] = 0;
+              grid[y - 1][x + 1] = 0;
+              grid[y + 1][x + 1] = 1;
+              grid[y + 1][x + 2] = 1;
+              break rotate;
+            }
+            if (currentShape === "Z180") {
+              currentShape = "Z270"
+              grid[y][x] = 0;
+              grid[y + 1][x + 2] = 0;
+              grid[y][x + 2] = 1;
+              grid[y - 1][x + 2] = 1;
+              break rotate;
+            }
+            if (currentShape === "Z270") {
+              currentShape = "Z"
+              grid[y - 1][x + 1] = 0;
+              grid[y + 1][x] = 0;
+              grid[y - 1][x - 1] = 1;
+              grid[y - 1][x] = 1;
+              break rotate;
+            }
           }
         }
       }
   }
 }
 
-function scoreChecker() {
+
+function scoreChecker() { // checks if there is a full row of 2 blocks and if so clears them and gives points to player //
   for (let y = 0; y < 18; y++) {
     if (grid[y][0] === 2 && grid[y][1] === 2 && grid[y][2] === 2 && grid[y][3] === 2 && grid[y][4] === 2 && grid[y][5] === 2) {
       if (grid[y][6] === 2 && grid[y][7] === 2 && grid[y][8] === 2 && grid[y][9] === 2) {
@@ -453,7 +506,8 @@ function scoreChecker() {
   }
 }
 
-function infoBar() {
+
+function infoBar() { // shows info in background //
   rect(0, 0, 1600, 75)
   fill(255);
   textSize(50);
@@ -462,15 +516,30 @@ function infoBar() {
   text(score, width / 2, 60)
   text("NEXT", 1300, 300)
   image(border1, 1300, 1325);
-  // Working on showing next shape //
-  // fill(randomColor)
-  // spawnShape(secondShape);
+  spawnShape(secondShape);
+  for (let x = 0; x < shapeGrid.length; x++) {
+    for (let y = 0; y < shapeGrid.length; y++) {
+      if (shapeGrid[y][x] === 1) {
+        if (secondRandomColor === 'purpleCube') {
+          image(purpleCube, 1300 + x * cellSize, 320 + y * cellSize)
+        } else if (secondRandomColor === 'blueCube') {
+          image(blueCube, 1300 + x * cellSize, 320 + y * cellSize)
+        } else if (secondRandomColor === 'greenCube') {
+          image(greenCube, 1300 + x * cellSize, 320 + y * cellSize)
+        } else if (secondRandomColor === 'redCube') {
+          image(redCube, 1300 + x * cellSize, 320 + y * cellSize)
+        } else if (secondRandomColor === 'orangeCube') {
+          image(orangeCube, 1300 + x * cellSize, 320 + y * cellSize)
+        }
+      }
+    }
+  }
 }
 
 // Death Screen Functions //
 ////////////////////////////////////////////////////////////////////////////////
 
-function displayDeathScreen() {
+function displayDeathScreen() { // crappy death screen display function //
   fill("blue")
   background(0)
   textSize(100)
@@ -485,7 +554,7 @@ function death() {
 
 // Loop //
 ////////////////////////////////////////////////////////////////////////////////
-function draw() {
+function draw() { // displays screen depending on screen //
   if (startScreenOn === true) {
     displayStartScreen()
   }
