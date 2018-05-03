@@ -1,107 +1,498 @@
-/////////////////////////////////////////
-// Tetris
-// Justyn Pollard
-// Feb 2, 2018
-////////////////////////////////////////
-
+// Pair Programming Tetris(2d-Array based) //
+// Justyn Pollard //
+// April 18, 2018 //
 
 // global variables //
-////////////////////////////////////////
-let tetrisLogo;
-let playText;
-let backText;
-let gameScreenOn = false;
-let startingMenuOn = true;
-let pause = false;
-let score = 0;
 
-// Functions //
-///////////////////////////////////////
+// 0 = Empty location, 3 = stopped moving block, 2 = Stationary block, 1 = Moving block
+let grid = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+];
+
+let shapeGrid;
+
+let shapes = ['S', 'Z', 'I', 'L', 'T', 'J', 'square'];
+let purpleCube, blueCube, redCube, orangeCube, greenCube, yellowCube;
+let colors = ["purpleCube", "blueCube", "redCube", "orangeCube", "greenCube"];
+let cellSize = 50;
+let winHeight = 1200;
+let winWidth = 1600;
+let startScreenOn = true;
+let gameScreenOn = false;
+let deathScreenOn = false;
+let playButton, playButtonHighlighted;
+let block;
+let border;
+let pickedShape;
+let spaceFree = true;
+let threePresent;
+let score = 0;
+let currentShape;
+let secondShape;
+let thirdShape;
+let randomColor;
+
+// Setup Functions //
 function preload() {
-  tetrisLogo = loadImage("images/tetrislogo.png");
-  playText = loadImage("images/playtext.png");
-  backText = loadImage("images/backtext.png")
+  background1 = loadImage("images/background.png")
+  playButton = loadImage("images/playButton.png");
+  playButtonHighlighted = loadImage("images/playButtonHighlighted.png");
+  purpleCube = loadImage("images/purpleCube.png");
+  blueCube = loadImage("images/blueCube.png");
+  redCube = loadImage("images/redCube.png");
+  orangeCube = loadImage("images/orangeCube.png");
+  greenCube = loadImage("images/greenCube.png");
+  yellowCube = loadImage("images/yellowCube.png");
+  border1 = loadImage("images/border1.png");
+  tetrisFont = loadFont("assets/ModernTetris.ttf");
+}
+
+Array.prototype.sample = function() {
+  return this[Math.floor(Math.random() * this.length)];
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(1600, 1200);
+  secondShape = shapes.sample();
+  thirdShape = shapes.sample();
+  randomColor = colors.sample();
 }
 
-function playButton() {
-  fill(200, 0, 0);
-  rect((width / 4 - 10), (height / 4 - 10), (width / 2 + 20), (height / 2 + 20));
-  fill(220, 0, 0);
-  rect((width / 4), (height / 4), (width / 2), (height / 2));
-  fill('black');
-  textSize(100);
-  image(playText, (width / 2 - 112), (height / 2 - 62));
-  image(tetrisLogo, (width / 2 - 166), 100);
+// Functions //
+
+// Display Screen Functions //
+////////////////////////////////////////////////////////////////////////////////
+
+function displayStartScreen() {
+  for (let i = 0; i < winHeight; i++) { //Displays gradient background
+    stroke(i / winHeight * 255, 71, 190);
+    line(0, i, 1600, i);
+  }
+  playButtonFun();
 }
 
-function startingMenu() {
-  playButton()
+function playButtonFun() {
+  if (mouseX >= 1600 / 2 - 130 && mouseX <= 1600 / 2 + 130 && mouseY >= 500 && mouseY <= 600) { // Button Function
+    image(playButtonHighlighted, 1600 / 2 - 130, 500);
+    if (mouseIsPressed) {
+      startScreenOn = false;
+      gameScreenOn = true;
+    }
+  } else {
+    image(playButton, 1600 / 2 - 130, 500);
+  }
 }
 
-function backButton() {
-  fill(100);
-  rect(50, 190, 210, 110);
-  fill(200);
-  rect(55, 195, 200, 100);
+// Game Screen Functions //
+////////////////////////////////////////////////////////////////////////////////
+
+function displayGameScreen() {
+  image(background1, 0, 0)
+  infoBar()
+  stroke(255, 255, 255, 50);
+  for (let x = 0; x < 10; x++) {
+    for (let y = 0; y < 18; y++) {
+      if (grid[y][x] === 0) {
+        fill(100, 100, 255, 100);
+        stroke(255, 255, 255, 50);
+      }
+      if (grid[y][x] === 1) {
+        fill(255, 255, 255, 0)
+        noStroke()
+        if (randomColor === 'purpleCube') {
+          image(purpleCube, 550 + x * cellSize, 200 + y * cellSize)
+        } else if (randomColor === 'blueCube') {
+          image(blueCube, 550 + x * cellSize, 200 + y * cellSize)
+        } else if (randomColor === 'greenCube') {
+          image(greenCube, 550 + x * cellSize, 200 + y * cellSize)
+        } else if (randomColor === 'redCube') {
+          image(redCube, 550 + x * cellSize, 200 + y * cellSize)
+        } else if (randomColor === 'orangeCube') {
+          image(orangeCube, 550 + x * cellSize, 200 + y * cellSize)
+        }
+      }
+      if (grid[y][x] === 2) {
+        fill(255, 255, 255, 0)
+        noStroke()
+        image(yellowCube, 550 + x * cellSize, 200 + y * cellSize)
+      }
+      rect(550 + x * cellSize, 200 + y * cellSize, cellSize, cellSize);
+    }
+  }
+
+  pickShape();
+  moveBlocks();
+  scoreChecker();
 }
 
-function gameScreen() {
-  fill(100);
-  rect((width / 2 - 260), 190, 520, 620);
-  rect((width / 2 - 410), 190, 145, 145);
-  fill(200);
-  rect((width / 2 - 250), 200, 500, 600);
-  rect((width / 2 - 400), 200, 125, 125);
-  image(tetrisLogo, (width / 2 - 166), 75);
-  backButton()
-}
 
-// function blockFalling() {
-//
-// }
-
-function pauseScreen() {
-  fill('green')
-  text('PAUSED', width/2, height/2)
-}
-
-function mouseClicked() {
-  if (startingMenuOn === true) {
-    if (mouseX >= (width / 4 - 10) && mouseX <= (width / 4 * 3)) {
-      if (mouseY >= height / 4 - 10 && mouseY <= (height / 4 * 3)) {
-        startingMenuOn = false
-        gameScreenOn = true
+function pickShape() {
+  if (spaceFree === true) {
+    spaceFree = false;
+    randomColor = colors.sample();
+    currentShape = secondShape;
+    secondShape = thirdShape;
+    thirdShape = shapes.sample();
+    spawnShape(currentShape)
+    for (let x = 0; x < shapeGrid.length; x++) {
+      for (let y = 0; y < shapeGrid.length; y++) {
+        if (grid[x][y + 5] === 2) {
+          death()
+        } else {
+          grid[x][y + 5] = shapeGrid[x][y]
+        }
       }
     }
   }
 }
 
-function keyTyped() {
-  if (startingMenuOn === false) {
-    if (key === 'p') {
-      pause = !pause
-      gameScreenOn = !gameScreenOn
+function spawnShape(shape) {
+  if (shape === 'I') {
+    shapeGrid = [
+      [0, 1, 0],
+      [0, 1, 0],
+      [0, 1, 0],
+    ];
+  } else if (shape === 'L') {
+    shapeGrid = [
+      [0, 1, 0],
+      [0, 1, 0],
+      [0, 1, 1],
+    ];
+  } else if (shape === 'Z') {
+    shapeGrid = [
+      [1, 1, 0],
+      [0, 1, 1],
+      [0, 0, 0],
+    ];
+  } else if (shape === 'square') {
+    shapeGrid = [
+      [1, 1],
+      [1, 1],
+    ];
+  } else if (shape === 'S') {
+    shapeGrid = [
+      [0, 1, 1],
+      [1, 1, 0],
+      [0, 0, 0],
+    ];
+  } else if (shape === 'J') {
+    shapeGrid = [
+      [0, 1, 0],
+      [0, 1, 0],
+      [1, 1, 0],
+    ];
+  } else if (shape === 'T') {
+    shapeGrid = [
+      [1, 0, 0],
+      [1, 1, 0],
+      [1, 0, 0],
+    ];
+  }
+}
+
+function moveBlocks() {
+  if (frameCount % 30 === 0) {
+    downFree = true;
+    for (let y = 17; y >= 0; y--) {
+      for (let x = 9; x >= 0; x--) {
+        if (grid[y][x] === 1 && (grid[y + 1][x] === 2 || typeof grid[y + 1][x] === 'undefined')) {
+          downFree = false;
+        }
+      }
+    }
+    for (let x = 9; x >= 0; x--) {
+      for (let y = 17; y >= 0; y--) {
+        if (grid[y][x] === 1) {
+          if (grid[y + 1][x] === 2 || grid[y + 1][x] === 3) {
+            grid[y][x] = 3;
+          } else if (y + 1 === 17) {
+            grid[y + 1][x] = 3;
+            grid[y][x] = 0;
+          } else if (downFree === true) {
+            grid[y + 1][x] = 1;
+            grid[y][x] = 0;
+          }
+        }
+      }
+    }
+  }
+  checkSpace()
+}
+
+function checkSpace() {
+  threePresent = false;
+  for (let x = 9; x >= 0; x--) {
+    for (let y = 17; y >= 0; y--) {
+      if (grid[y][x] === 3) {
+        threePresent = true;
+      }
+    }
+  }
+  if (threePresent === true) {
+    for (let x = 9; x >= 0; x--) {
+      for (let y = 17; y >= 0; y--) {
+        if (grid[y][x] === 3 || grid[y][x] === 1) {
+          grid[y][x] = 2;
+        }
+      }
+    }
+    spaceFree = true;
+  }
+}
+
+function keyPressed() {
+  if (keyCode === RIGHT_ARROW) {
+    let rightFree = true;
+    for (let x = 9; x >= 0; x--) {
+      for (let y = 17; y >= 0; y--) {
+        if (grid[y][x] === 1 && (grid[y][x + 1] === 2 || typeof grid[y][x + 1] === 'undefined')) {
+          rightFree = false;
+        }
+      }
+    }
+    if (rightFree === true) {
+      for (let x = 9; x >= 0; x--) {
+        for (let y = 17; y >= 0; y--) {
+          if (grid[y][x] === 1) {
+            grid[y][x + 1] = 1;
+            grid[y][x] = 0;
+          }
+        }
+      }
+    }
+  }
+
+
+  if (keyCode === LEFT_ARROW) {
+    let leftFree = true;
+    for (let x = 0; x < 10; x++) {
+      for (let y = 0; y < 18; y++) {
+        if (grid[y][x] === 1 && (grid[y][x - 1] === 2 || typeof grid[y][x - 1] === 'undefined')) {
+          leftFree = false;
+        }
+      }
+    }
+    if (leftFree === true) {
+      for (let x = 0; x < 10; x++) {
+        for (let y = 0; y < 18; y++) {
+          if (grid[y][x] === 1) {
+            grid[y][x - 1] = 1;
+            grid[y][x] = 0;
+          }
+        }
+      }
+    }
+  }
+
+
+  if (keyCode === DOWN_ARROW) {
+    let downFree = true;
+    for (let x = 0; x < 10; x++) {
+      for (let y = 0; y < 18; y++) {
+        if (grid[y][x] === 1 && (grid[y + 1][x] === 2 || typeof grid[y + 1][x] === 'undefined' || y + 1 === 17)) {
+          downFree = false;
+        }
+      }
+    }
+    if (downFree === true) {
+      for (let y = 17; y >= 0; y--) {
+        for (let x = 9; x >= 0; x--) {
+          if (grid[y][x] === 1) {
+            grid[y + 1][x] = 1;
+            grid[y][x] = 0;
+          }
+        }
+      }
+    }
+  }
+
+  if (keyCode === UP_ARROW) {
+    let rotateFree = true;
+
+    rotate:
+      for (let x = 0; x < 10; x++) {
+        for (let y = 0; y < 18; y++) {
+          if (grid[y][x] === 1) {
+            if (currentShape === "I") {
+              currentShape = "I90"
+              grid[y][x] = 0;
+              grid[y + 2][x] = 0;
+              grid[y + 1][x - 1] = 1;
+              grid[y + 1][x + 1] = 1;
+              break rotate;
+            }
+            if (currentShape === "I90") {
+              currentShape = "I"
+              grid[y][x] = 0;
+              grid[y][x + 2] = 0;
+              grid[y - 1][x + 1] = 1;
+              grid[y + 1][x + 1] = 1;
+              break rotate;
+            }
+            if (currentShape === "L") {
+              currentShape = "L90"
+              grid[y][x] = 0;
+              grid[y + 2][x] = 0;
+              grid[y + 1][x - 1] = 1;
+              grid[y + 1][x + 1] = 1;
+              grid[y + 2][x + 1] = 0;
+              grid[y][x + 1] = 1;
+              break rotate;
+            }
+            if (currentShape === "L90") {
+              currentShape = "L180"
+              grid[y][x] = 0;
+              grid[y - 1][x + 2] = 0;
+              grid[y][x + 2] = 0;
+              grid[y - 1][x + 1] = 1;
+              grid[y + 1][x + 1] = 1;
+              grid[y - 1][x] = 1;
+              break rotate;
+            }
+            if (currentShape === "L180") {
+              currentShape = "L270"
+              grid[y][x] = 0;
+              grid[y][x + 1] = 0;
+              grid[y + 2][x + 1] = 0;
+              grid[y + 1][x] = 1;
+              grid[y + 2][x] = 1;
+              grid[y + 1][x + 2] = 1;
+              break rotate;
+            }
+            if (currentShape === "L270") {
+              currentShape = "L"
+              grid[y][x] = 0;
+              grid[y + 1][x] = 0;
+              grid[y][x + 2] = 0;
+              grid[y - 1][x + 1] = 1;
+              grid[y + 1][x + 1] = 1;
+              grid[y + 1][x + 2] = 1;
+              break rotate;
+            }
+            if (currentShape === "J") {
+              currentShape = "J90"
+              grid[y][x] = 0;
+              grid[y - 2][x + 1] = 0;
+              grid[y][x + 1] = 0;
+              grid[y - 1][x] = 1;
+              grid[y - 2][x] = 1;
+              grid[y - 1][x + 2] = 1;
+              break rotate;
+            }
+            if (currentShape === "J90") {
+              currentShape = "J180"
+              grid[y][x] = 0;
+              grid[y][x + 2] = 1;
+              grid[y][x + 1] = 1;
+              grid[y + 1][x] = 0;
+              grid[y + 1][x + 2] = 0;
+              grid[y + 2][x + 1] = 1;
+              break rotate;
+            }
+            if (currentShape === "J180") {
+              currentShape = "J270"
+              grid[y][x] = 0;
+              grid[y + 2][x] = 0;
+              grid[y][x + 1] = 0;
+              grid[y + 1][x + 1] = 1;
+              grid[y + 2][x + 1] = 1;
+              grid[y + 1][x - 1] = 1;
+              break rotate;
+            }
+            if (currentShape === "J270") {
+              currentShape = "J"
+              grid[y][x] = 0;
+              grid[y][x + 2] = 0;
+              grid[y + 1][x + 2] = 0;
+              grid[y + 1][x] = 1;
+              grid[y + 1][x + 1] = 1;
+              grid[y - 1][x + 1] = 1;
+              break rotate;
+            }
+          }
+        }
+      }
+  }
+}
+
+function scoreChecker() {
+  for (let y = 0; y < 18; y++) {
+    if (grid[y][0] === 2 && grid[y][1] === 2 && grid[y][2] === 2 && grid[y][3] === 2 && grid[y][4] === 2 && grid[y][5] === 2) {
+      if (grid[y][6] === 2 && grid[y][7] === 2 && grid[y][8] === 2 && grid[y][9] === 2) {
+        score = score + 100;
+        for (let x = 0; x < 10; x++) {
+          grid[y][x] = 0
+        }
+        for (let i = y - 1; i >= 0; i--) {
+          for (let j = 9; j >= 0; j--) {
+            print(grid[i][j])
+            grid[i + 1][j] = grid[i][j]
+            grid[i][j] = 0
+          }
+        }
+      }
     }
   }
 }
 
+function infoBar() {
+  rect(0, 0, 1600, 75)
+  fill(255);
+  textSize(50);
+  textStyle(BOLD);
+  text("SCORE", 50, 60);
+  text(score, width / 2, 60)
+  text("NEXT", 1300, 300)
+  image(border1, 1300, 1325);
+  // Working on showing next shape //
+  // fill(randomColor)
+  // spawnShape(secondShape);
+}
+
+// Death Screen Functions //
+////////////////////////////////////////////////////////////////////////////////
+
+function displayDeathScreen() {
+  fill("blue")
+  background(0)
+  textSize(100)
+  text("GAME OVER", 600, 600)
+}
+
+function death() {
+  startScreenOn = false;
+  deathScreenOn = true;
+}
 
 
 // Loop //
-//////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 function draw() {
-  background('black')
-  if (startingMenuOn === true) {
-    startingMenu()
+  if (startScreenOn === true) {
+    displayStartScreen()
   }
   if (gameScreenOn === true) {
-    gameScreen()
+    displayGameScreen()
   }
-  if (pause === true) {
-    pauseScreen()
+  if (deathScreenOn === true) {
+    displayDeathScreen()
   }
 }
